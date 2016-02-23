@@ -105,7 +105,7 @@ abstract class GridAbstract
         }
 
         $now = new \DateTime();
-        $this->name = md5($now->format('Y-m-d H:i:s:u'));
+        $this->name = $this->request->query->get('file_name', md5($now->format('Y-m-d H:i:s:u')));
     }
 
     /**
@@ -457,7 +457,8 @@ abstract class GridAbstract
         fclose($fileHandler);
 
         return array(
-            'file_hash' => $this->fileHash
+            'file_hash' => $this->fileHash,
+            'file_name' => $this->name
         );
     }
 
