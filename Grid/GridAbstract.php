@@ -4,16 +4,14 @@ namespace PedroTeixeira\Bundle\GridBundle\Grid;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
-
 use Doctrine\ORM\Tools\Pagination\Paginator;
-
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Grid Abstract
  */
-abstract class GridAbstract
-{
+abstract class GridAbstract {
+
     /**
      * @var \Symfony\Component\DependencyInjection\Container
      */
@@ -238,7 +236,12 @@ abstract class GridAbstract
         return $column;
     }
 
-    public function replaceColumn($name)
+    /**
+     * @param $name
+     * @param bool $all
+     * @return Column
+     */
+    public function replaceColumn($name, $all = false)
     {
         $column = new Column($this->container, $name);
 
@@ -247,9 +250,11 @@ abstract class GridAbstract
          * @var Column $column
          */
         foreach ($this->columns as $key => $column) {
-            if($column->getName() == $name) {
+            if ($column->getName() == $name) {
                 $this->columns[$key] = $column;
-                return $column;
+                if (!$all) {
+                    return $column;
+                }
             }
         }
 
@@ -283,7 +288,7 @@ abstract class GridAbstract
     protected function getExportFileName()
     {
         $exportPath = $this->container->getParameter('pedro_teixeira_grid.export.path');
-        $exportFile = $exportPath . $this->getName() . '_' . $this->fileHash . '.csv';
+        $exportFile = $exportPath.$this->getName().'_'.$this->fileHash.'.csv';
 
         return $exportFile;
     }
@@ -297,11 +302,11 @@ abstract class GridAbstract
     {
         $defaultLimit = $this->container->getParameter('pedro_teixeira_grid.pagination.limit');
 
-        $page       = $this->request->query->get('page', 1);
-        $limit      = $this->request->query->get('limit', $defaultLimit);
-        $sortIndex  = $this->request->query->get('sort');
-        $sortOrder  = $this->request->query->get('sort_order');
-        $filters    = $this->request->query->get('filters', array());
+        $page = $this->request->query->get('page', 1);
+        $limit = $this->request->query->get('limit', $defaultLimit);
+        $sortIndex = $this->request->query->get('sort');
+        $sortOrder = $this->request->query->get('sort_order');
+        $filters = $this->request->query->get('filters', array());
 
         $page = intval(abs($page));
         $page = ($page <= 0 ? 1 : $page);
@@ -358,15 +363,15 @@ abstract class GridAbstract
                 ->setMaxResults($limit);
 
             $response = array(
-                'page'       => $page,
+                'page' => $page,
                 'page_count' => $totalPages,
                 'page_limit' => $limit,
-                'row_count'  => $totalCount,
-                'rows'       => array()
+                'row_count' => $totalCount,
+                'rows' => array()
             );
         } else {
             $response = array(
-                'rows'       => array()
+                'rows' => array()
             );
         }
 
@@ -387,25 +392,21 @@ abstract class GridAbstract
                 if (array_key_exists($column->getField(), $row)) {
 
                     $rowColumn = $row[$column->getField()];
-
-                // Array scalar
+                    // Array scalar
                 } elseif (array_key_exists(0, $row) && array_key_exists($column->getField(), $row[0])) {
 
                     $rowColumn = $row[0][$column->getField()];
+                    // Object
+                } elseif (method_exists($row, 'get'.ucfirst($column->getField()))) {
 
-                // Object
-                } elseif (method_exists($row, 'get' . ucfirst($column->getField()))) {
-
-                    $method = 'get' . ucfirst($column->getField());
+                    $method = 'get'.ucfirst($column->getField());
                     $rowColumn = $row->$method();
+                    // Object scalar
+                } elseif (array_key_exists(0, $row) && method_exists($row[0], 'get'.ucfirst($column->getField()))) {
 
-                // Object scalar
-                } elseif (array_key_exists(0, $row) && method_exists($row[0], 'get' . ucfirst($column->getField()))) {
-
-                    $method = 'get' . ucfirst($column->getField());
+                    $method = 'get'.ucfirst($column->getField());
                     $rowColumn = $row[0]->$method();
-
-                // Array
+                    // Array
                 } elseif ($column->getTwig()) {
 
                     $rowColumn = $this->templating->render(
@@ -519,7 +520,7 @@ abstract class GridAbstract
 
                 $response = new Response();
                 $response->headers->set('Content-Type', 'text/csv');
-                $response->headers->set('Content-Disposition', 'attachment; filename="' . basename($exportFile) . '"');
+                $response->headers->set('Content-Disposition', 'attachment; filename="'.basename($exportFile).'"');
                 $response->setContent(file_get_contents($exportFile));
 
                 return $response;
