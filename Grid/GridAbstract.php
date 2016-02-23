@@ -238,6 +238,25 @@ abstract class GridAbstract
         return $column;
     }
 
+    public function replaceColumn($name)
+    {
+        $column = new Column($this->container, $name);
+
+        /**
+         * @var int $key
+         * @var Column $column
+         */
+        foreach ($this->columns as $key => $column) {
+            if($column->getName() == $name) {
+                $this->columns[$key] = $column;
+                return $column;
+            }
+        }
+
+        $this->columns[] = $column;
+        return $column;
+    }
+
     /**
      * Return an array with column definitions
      *
