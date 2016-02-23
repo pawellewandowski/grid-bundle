@@ -1,18 +1,21 @@
 {
-  "name" : "pedro-teixeira/grid-bundle",
+  "name" : "marrek13/grid-bundle",
   "type" : "symfony-bundle",
   "description" : "Ajax grid for Symfony2",
   "keywords" : [
     "datagrid",
     "grid"
   ],
-  "homepage" : "http://github.com/pedro-teixeira/grid-bundle",
+  "homepage" : "http://github.com/marrek13/grid-bundle",
   "license" : "MIT",
   "authors" : [
     {
       "name" : "Pedro Teixeira",
       "email" : "hello@pedroteixeira.io",
       "homepage" : "https://pedroteixeira.io"
+    },
+    {
+      "name" : "Mariusz Soltysiak"
     }
   ],
   "require" : {
