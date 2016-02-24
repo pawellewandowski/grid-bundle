@@ -48,6 +48,11 @@ class Column
     protected $renderType = 'text';
 
     /**
+     * @var string
+     */
+    protected $renderFunction = false;
+
+    /**
      * @var bool
      */
     protected $exportOnly = false;
@@ -341,5 +346,21 @@ class Column
                 sprintf('Grid render type "%s" doesn\'t exist', $renderType)
             );
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getRenderFunction()
+    {
+        return $this->renderFunction;
+    }
+
+    /**
+     * @param string $renderFunction
+     */
+    public function setRenderFunction($renderFunction)
+    {
+        $this->renderFunction = $renderFunction;
     }
 }

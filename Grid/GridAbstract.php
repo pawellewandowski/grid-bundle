@@ -55,6 +55,11 @@ abstract class GridAbstract {
     /**
      * @var bool
      */
+    protected $filterable;
+
+    /**
+     * @var bool
+     */
     protected $exportable;
 
     /**
@@ -96,6 +101,7 @@ abstract class GridAbstract {
         $this->ajax = $this->request->isXmlHttpRequest() ? true : false;
 
         $this->exportable = $this->container->getParameter('pedro_teixeira_grid.export.enabled');
+        $this->filterable = true;
         $this->export = $this->request->query->get('export', false);
         $this->fileHash = $this->request->query->get('file_hash', null);
         if (is_null($this->fileHash)) {
@@ -419,20 +425,9 @@ abstract class GridAbstract {
 
                 $camelCaseField = $this->dashesToCamelCase($fields[0], true);
                 // Array
-                if (array_key_exists($fields[0], $row)) {
-
-                    $rowColumn = $row[0];
-                    // Array scalar
-                } elseif (array_key_exists(0, $row) && array_key_exists($fields[0], $row[0])) {
-
-                    $rowColumn = $row[0][$fields[0]];
-                    // Object
-                } elseif (method_exists($row, 'get'.$camelCaseField)) {
-                    $rowColumn = $this->getValue($row, $fields);
-                    // Object scalar
-                } elseif (array_key_exists(0, $row) && method_exists($row[0], 'get'.$camelCaseField)) {
-                    $rowColumn = $this->getValue($row[0], $fields);
-                    // Array
+                if ($column->getRenderFunction()) {
+                    $func = $column->getRenderFunction();
+                    $rowColumn = $func($row);
                 } elseif ($column->getTwig()) {
 
                     $rowColumn = $this->templating->render(
@@ -441,6 +436,18 @@ abstract class GridAbstract {
                             'row' => $row
                         )
                     );
+                } elseif (array_key_exists($fields[0], $row)) {
+                    $rowColumn = $row[0];
+                    // Array scalar
+                } elseif (array_key_exists(0, $row) && array_key_exists($fields[0], $row[0])) {
+                    $rowColumn = $row[0][$fields[0]];
+                    // Object
+                } elseif (method_exists($row, 'get'.$camelCaseField)) {
+                    $rowColumn = $this->getValue($row, $fields);
+                    // Object scalar
+                } elseif (array_key_exists(0, $row) && method_exists($row[0], 'get'.$camelCaseField)) {
+                    $rowColumn = $this->getValue($row[0], $fields);
+                    // Array
                 }
 
                 $rowValue[$column->getField()] = $column->getRender()
@@ -554,5 +561,21 @@ abstract class GridAbstract {
                 return new GridView($this, $this->container);
             }
         }
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isFilterable()
+    {
+        return $this->filterable;
+    }
+
+    /**
+     * @param boolean $filterable
+     */
+    public function setFilterable($filterable)
+    {
+        $this->filterable = $filterable;
     }
 }
