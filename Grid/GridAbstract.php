@@ -243,23 +243,28 @@ abstract class GridAbstract {
      */
     public function replaceColumn($name, $all = false)
     {
-        $column = new Column($this->container, $name);
+        $newColumn = new Column($this->container, $name);
 
+        $found = false;
         /**
          * @var int $key
          * @var Column $column
          */
         foreach ($this->columns as $key => $column) {
             if ($column->getName() == $name) {
-                $this->columns[$key] = $column;
+                $this->columns[$key] = $newColumn;
                 if (!$all) {
-                    return $column;
+                    return $newColumn;
                 }
+                $found = true;
             }
         }
 
-        $this->columns[] = $column;
-        return $column;
+        if (!$found) {
+            $this->columns[] = $newColumn;
+        }
+
+        return $newColumn;
     }
 
     /**
@@ -301,7 +306,18 @@ abstract class GridAbstract {
             $str[0] = strtolower($str[0]);
         }
 
-        return lcfirst($str);
+        return $str;
+    }
+
+    protected function getValue($obj, $fields)
+    {
+        $value = $obj;
+        foreach ($fields as $field) {
+            $method = 'get'.$this->dashesToCamelCase($field, true);
+            $value = $value->$method();
+        }
+
+        return $value;
     }
 
     /**
@@ -399,26 +415,23 @@ abstract class GridAbstract {
 
                 $rowColumn = ' ';
 
-                $camelCaseField = $this->dashesToCamelCase($column->getField());
+                $fields = explode('.', $column->getField());
+
+                $camelCaseField = $this->dashesToCamelCase($fields[0], true);
                 // Array
-                if (array_key_exists($column->getField(), $row)) {
+                if (array_key_exists($fields[0], $row)) {
 
-                    $rowColumn = $row[$column->getField()];
-
+                    $rowColumn = $row[0];
                     // Array scalar
-                } elseif (array_key_exists(0, $row) && array_key_exists($column->getField(), $row[0])) {
+                } elseif (array_key_exists(0, $row) && array_key_exists($fields[0], $row[0])) {
 
-                    $rowColumn = $row[0][$column->getField()];
+                    $rowColumn = $row[0][$fields[0]];
                     // Object
                 } elseif (method_exists($row, 'get'.$camelCaseField)) {
-
-                    $method = 'get'.$camelCaseField;
-                    $rowColumn = $row->$method();
+                    $rowColumn = $this->getValue($row, $fields);
                     // Object scalar
                 } elseif (array_key_exists(0, $row) && method_exists($row[0], 'get'.$camelCaseField)) {
-
-                    $method = 'get'.$camelCaseField;
-                    $rowColumn = $row[0]->$method();
+                    $rowColumn = $this->getValue($row[0], $fields);
                     // Array
                 } elseif ($column->getTwig()) {
 
