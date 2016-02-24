@@ -176,7 +176,7 @@ abstract class GridAbstract {
     public function getUrl()
     {
         if (!$this->url) {
-            $this->url = $this->router->generate($this->request->get('_route'));
+            $this->url = $this->request->getRequestUri();
         }
 
         return $this->url;
