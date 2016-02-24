@@ -293,6 +293,17 @@ abstract class GridAbstract {
         return $exportFile;
     }
 
+    protected function dashesToCamelCase($string, $capitalizeFirstCharacter = false)
+    {
+        $str = str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
+
+        if (!$capitalizeFirstCharacter) {
+            $str[0] = strtolower($str[0]);
+        }
+
+        return lcfirst($str);
+    }
+
     /**
      * Process the filters and return the result
      *
@@ -388,23 +399,25 @@ abstract class GridAbstract {
 
                 $rowColumn = ' ';
 
+                $camelCaseField = $this->dashesToCamelCase($column->getField());
                 // Array
                 if (array_key_exists($column->getField(), $row)) {
 
                     $rowColumn = $row[$column->getField()];
+
                     // Array scalar
                 } elseif (array_key_exists(0, $row) && array_key_exists($column->getField(), $row[0])) {
 
                     $rowColumn = $row[0][$column->getField()];
                     // Object
-                } elseif (method_exists($row, 'get'.ucfirst($column->getField()))) {
+                } elseif (method_exists($row, 'get'.$camelCaseField)) {
 
-                    $method = 'get'.ucfirst($column->getField());
+                    $method = 'get'.$camelCaseField;
                     $rowColumn = $row->$method();
                     // Object scalar
-                } elseif (array_key_exists(0, $row) && method_exists($row[0], 'get'.ucfirst($column->getField()))) {
+                } elseif (array_key_exists(0, $row) && method_exists($row[0], 'get'.$camelCaseField)) {
 
-                    $method = 'get'.ucfirst($column->getField());
+                    $method = 'get'.$camelCaseField;
                     $rowColumn = $row[0]->$method();
                     // Array
                 } elseif ($column->getTwig()) {
