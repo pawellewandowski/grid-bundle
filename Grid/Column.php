@@ -362,5 +362,7 @@ class Column
     public function setRenderFunction($renderFunction)
     {
         $this->renderFunction = $renderFunction;
+        
+        return $this;
     }
 }
