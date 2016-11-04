@@ -1,10 +1,10 @@
-!function($) {
+!function ($) {
 
     /* GRID PUBLIC CLASS DEFINITION
      * ================================= */
 
 
-    var Grid = function(element, options) {
+    var Grid = function (element, options) {
         this.$element = $(element);
         this.options = $.extend({}, $.fn.grid.defaults, options);
         this.ajaxUrl = this.options.ajaxUrl || this.ajaxUrl;
@@ -15,6 +15,7 @@
         this.page = 1;
         this.totalRows = 0;
         this.totalPages = 0;
+        this.requestFinished = true;
         this.listen();
         this.ajax()
     };
@@ -23,8 +24,9 @@
 
         constructor: Grid
 
-        , ajax: function() {
-
+        , ajax: function () {
+            if(!this.requestFinished) return false;
+            this.requestFinished = false;
             var filters = this.$element.find('form').serializeArray(),
                 tbody = this.$element.find('table').find('tbody.row-result'),
                 emptyTbody = this.$element.find('table').find('tbody.row-empty'),
@@ -32,7 +34,7 @@
 
             this.page = this.$element.find('#pagination #pagination-page').val();
             this.limit = this.$element.find('#pagination #pagination-limit').val();
-
+            var $this = this;
             $.ajax({
                 url: this.ajaxUrl,
                 type: 'get',
@@ -46,10 +48,11 @@
                 },
                 dataType: 'json',
                 timeout: (this.exportFlag ? (5 * 60 * 1000) : (10 * 1000)),
-                beforeSend: function(data) {
+                beforeSend: function (data) {
                     thisClass.gridLock()
                 },
-                success: function(data) {
+                success: function (data) {
+
                     thisClass.gridUnlock();
 
                     if (data.file_hash && data.file_name) {
@@ -68,9 +71,9 @@
 
                     if (data.rows.length > 0) {
                         emptyTbody.hide();
-                        $.each(data.rows, function(i, item) {
+                        $.each(data.rows, function (i, item) {
                             html += '<tr>';
-                            $.each(item, function(i, value) {
+                            $.each(item, function (i, value) {
                                 if (value == null) {
                                     value = ''
                                 }
@@ -83,22 +86,24 @@
                         emptyTbody.show()
                     }
 
-                    tbody.html(html)
+                    tbody.html(html);
+                    $this.requestFinished = true;
                 },
-                error: function(error) {
+                error: function (error) {
                     thisClass.gridUnlock();
 
                     emptyTbody.show();
                     tbody.html('');
 
                     alert('Error: ' + error.statusText)
+                    $this.requestFinished = true;
                 }
             });
 
             return this
         }
 
-        , listen: function() {
+        , listen: function () {
             this.$element.find('form').on('submit', $.proxy(this.submit, this));
             this.$element.find('select').on('change', $.proxy(this.ajax, this));
 
@@ -113,19 +118,19 @@
             return this
         }
 
-        , submit: function() {
+        , submit: function () {
             this.ajax();
 
             return false
         }
 
-        , refreshFilters: function() {
+        , refreshFilters: function () {
 
-            $.each(this.$element.find('form'), function(i, form) {
+            $.each(this.$element.find('form'), function (i, form) {
                 form.reset()
             });
 
-            $.each(this.$element.find('.date-input'), function(i, input) {
+            $.each(this.$element.find('.date-input'), function (i, input) {
                 $(input).removeAttr('value')
             });
 
@@ -134,7 +139,7 @@
             return this
         }
 
-        , export: function() {
+        , export: function () {
             this.exportFlag = true;
             this.ajax();
             this.exportFlag = false;
@@ -142,21 +147,21 @@
             return this
         }
 
-        , gridLock: function() {
+        , gridLock: function () {
             this.$element.find('input, select, textarea, button').attr('disabled', true);
             this.$element.css({opacity: 0.5});
 
             return this
         }
 
-        , gridUnlock: function() {
+        , gridUnlock: function () {
             this.$element.find('input, select, textarea, button').attr('disabled', false);
             this.$element.css({opacity: 1});
 
             return this
         }
 
-        , processOrder: function(event) {
+        , processOrder: function (event) {
 
             var element = $(event.target);
             sortIndex = element.data('index');
@@ -183,8 +188,8 @@
             return this
         }
 
-        , processOrderIcon: function(element) {
-            $.each(this.$element.find('#row-filters-label th i'), function(i, item) {
+        , processOrderIcon: function (element) {
+            $.each(this.$element.find('#row-filters-label th i'), function (i, item) {
                 item.remove()
             });
 
@@ -197,7 +202,7 @@
             return this
         }
 
-        , paginationProcess: function() {
+        , paginationProcess: function () {
 
             this.$element.find('#pagination #pagination-back-button').attr('disabled', false);
             this.$element.find('#pagination #pagination-forward-button').attr('disabled', false);
@@ -220,7 +225,7 @@
             return this
         }
 
-        , paginationBack: function() {
+        , paginationBack: function () {
             this.page--;
             this.$element.find('#pagination #pagination-page').val(this.page);
 
@@ -229,7 +234,7 @@
             return this
         }
 
-        , paginationForward: function() {
+        , paginationForward: function () {
             this.page++;
             this.$element.find('#pagination #pagination-page').val(this.page);
 
@@ -242,8 +247,8 @@
     /* GRID PLUGIN DEFINITION
      * =========================== */
 
-    $.fn.grid = function(option) {
-        return this.each(function() {
+    $.fn.grid = function (option) {
+        return this.each(function () {
             var $this = $(this)
                 , data = $this.data('grid')
                 , options = typeof option == 'object' && option;
