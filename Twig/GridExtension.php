@@ -91,7 +91,7 @@ class GridExtension extends Twig_Extension
      */
     protected function renderBlock($name, $parameters)
     {
-        /** @var Twig_TemplateInterface $template */
+        /* @var Twig_TemplateInterface $template /
         foreach ($this->getTemplates() as $template) {
             if ($template->hasBlock($name)) {
 
@@ -116,7 +116,7 @@ class GridExtension extends Twig_Extension
      */
     protected function hasBlock($name)
     {
-        /** @var Twig_TemplateInterface $template */
+        /* @var Twig_TemplateInterface $template /
         foreach ($this->getTemplates() as $template) {
             if ($template->hasBlock($name)) {
                 return true;
@@ -134,23 +134,20 @@ class GridExtension extends Twig_Extension
     public function getFunctions()
     {
         return array(
-            'pedroteixeira_grid' => new \Twig_Function_Method(
-                $this,
-                'renderGrid',
+            'pedroteixeira_grid' => new \Twig_SimpleFunction('renderGrid',
+                [$this, 'renderGrid'],
                 array(
                     'is_safe' => array('html')
                 )
             ),
-            'pedroteixeira_grid_html' => new \Twig_Function_Method(
-                $this,
-                'renderHtmlGrid',
+            'pedroteixeira_grid_html' => new \Twig_SimpleFunction('renderHtmlGrid',
+                [$this, 'renderHtmlGrid'],
                 array(
                     'is_safe' => array('html')
                 )
             ),
-            'pedroteixeira_grid_js' => new \Twig_Function_Method(
-                $this,
-                'renderJsGrid',
+            'pedroteixeira_grid_js' => new \Twig_SimpleFunction('renderJsGrid',
+                [$this, 'renderJsGrid'],
                 array(
                     'is_safe' => array('html')
                 )
